@@ -70,7 +70,7 @@ contract FilecoinWarmStorageService is
     uint256 private constant MAX_KEY_LENGTH = 64;
     uint256 private constant MAX_VALUE_LENGTH = 512;
     uint256 private constant MAX_KEYS_PER_DATASET = 10;
-    uint256 private constant MAX_KEYS_PER_ROOT = 5;
+    uint256 private constant MAX_KEYS_PER_PIECE = 5;
 
     // Pricing constants
     uint256 private immutable STORAGE_PRICE_PER_TIB_PER_MONTH; // 2 USDFC per TiB per month without CDN with correct decimals
@@ -614,7 +614,8 @@ contract FilecoinWarmStorageService is
         require(metadataKeys.length > 0, Errors.EmptyMetadataKeys(dataSetId));
         require(metadataValues.length > 0, Errors.EmptyMetadataValues(dataSetId));
         require(
-            metadataKeys.length <= MAX_KEYS_PER_ROOT, Errors.TooManyMetadataKeys(MAX_KEYS_PER_ROOT, metadataKeys.length)
+            metadataKeys.length <= MAX_KEYS_PER_PIECE,
+            Errors.TooManyMetadataKeys(MAX_KEYS_PER_PIECE, metadataKeys.length)
         );
 
         // Store metadata for each new piece
@@ -1105,10 +1106,10 @@ contract FilecoinWarmStorageService is
         return dataSetMetadata[dataSetId][key];
     }
 
-    /*
-     * @notice Get all metadata keys for a given proof set
-     * @param proofSetId The ID of the proof set
-     * @return keys Array of metadata keys stored for the proof set
+    /**
+     * @notice Get all metadata keys for a given data set
+     * @param dataSetId The ID of the data set
+     * @return keys Array of metadata keys stored for the data set
      */
     function getDataSetMetadataKeys(uint256 dataSetId) external view returns (string[] memory) {
         return dataSetMetadataKeys[dataSetId];
@@ -1126,18 +1127,18 @@ contract FilecoinWarmStorageService is
     }
 
     /**
-     * @notice Get the metadata for a specific piece and key by dataSetId and rootId
+     * @notice Get the metadata for a specific piece and key by dataSetId and pieceId
      * @param dataSetId The ID of the data set
-     * @param rootId The ID of the root within the data set
+     * @param pieceId The ID of the piece within the data set
      * @param key The metadata key (as string) to look up (e.g., "filename", "contentType", etc.)
      * @return The metadata value as bytes
      */
-    function getPieceMetadataByIds(uint256 dataSetId, uint256 rootId, string calldata key)
+    function getPieceMetadataByIds(uint256 dataSetId, uint256 pieceId, string calldata key)
         external
         view
         returns (bytes memory)
     {
-        uint256 dataSetPieceId = getDataSetPieceId(dataSetId, rootId);
+        uint256 dataSetPieceId = getDataSetPieceId(dataSetId, pieceId);
         return _getPieceMetadata(dataSetPieceId, key);
     }
 
@@ -1162,17 +1163,17 @@ contract FilecoinWarmStorageService is
     }
 
     /**
-     * @notice Get all metadata keys and values for a specific data set root
-     * @param dataSetRootId The composite ID for (dataSetId, rootId)
-     * @return keys An array of metadata keys corresponding to the data set root
+     * @notice Get all metadata keys and values for a specific data set piece
+     * @param dataSetPieceId The composite ID for (dataSetId, pieceId)
+     * @return keys An array of metadata keys corresponding to the data set piece
      * @return values An array of metadata values corresponding to the keys
      */
-    function getPieceMetadataAllKeys(uint256 dataSetRootId)
+    function getPieceMetadataAllKeys(uint256 dataSetPieceId)
         external
         view
         returns (string[] memory keys, bytes[] memory values)
     {
-        (keys, values) = _getRootMetadataAllKeys(dataSetRootId);
+        (keys, values) = _getPieceMetadataAllKeys(dataSetPieceId);
     }
 
     /**
@@ -1188,10 +1189,10 @@ contract FilecoinWarmStorageService is
         returns (string[] memory keys, bytes[] memory values)
     {
         uint256 dataSetPieceId = getDataSetPieceId(dataSetId, pieceId);
-        (keys, values) = _getRootMetadataAllKeys(dataSetPieceId);
+        (keys, values) = _getPieceMetadataAllKeys(dataSetPieceId);
     }
 
-    function _getRootMetadataAllKeys(uint256 dataSetPieceId)
+    function _getPieceMetadataAllKeys(uint256 dataSetPieceId)
         internal
         view
         returns (string[] memory keys, bytes[] memory values)
