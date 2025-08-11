@@ -13,6 +13,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # Fetch full history for base branch comparison
+          fetch-depth: 0
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -24,10 +27,60 @@ jobs:
           cd service_contracts 
           forge install
 
-      - name: Install jq
-        run: sudo apt-get install -y jq
+      - name: Install jq and bc
+        run: sudo apt-get install -y jq bc
 
-      - name: Check contract size
+      # Generate baseline from base branch (for PRs only)
+      - name: Generate baseline sizes from base branch
+        if: github.event_name == 'pull_request'
         run: |
           cd service_contracts
-          make contract-size-check
+          
+          # Get the base branch name (target branch of the PR)
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          echo "Generating baseline from base branch: $BASE_BRANCH"
+          
+          # Store current state
+          git stash push -m "Temporary stash for baseline generation" || true
+          
+          # Checkout base branch
+          git checkout "origin/$BASE_BRANCH"
+          
+          # Build and get baseline sizes
+          echo "Building baseline contracts..."
+          forge clean || true
+          forge build --sizes --json | jq . > ../baseline_sizes.json || true
+          
+          # Validate baseline JSON
+          if ! jq empty ../baseline_sizes.json 2>/dev/null; then
+            echo "Warning: Could not generate valid baseline sizes from base branch"
+            echo "{}" > ../baseline_sizes.json
+          fi
+          
+          # Return to PR branch
+          git checkout -
+          
+          # Restore any stashed changes
+          git stash pop || true
+          
+          echo "Baseline generated successfully"
+
+      # Main size check with delta reporting for PRs
+      - name: Check contract size with delta reporting
+        run: |
+          cd service_contracts
+          
+          if [[ "${{ github.event_name }}" == "pull_request" && -f "../baseline_sizes.json" ]]; then
+            echo "🔄 Running contract size check with delta reporting..."
+            echo "Comparing against base branch: ${{ github.event.pull_request.base.ref }}"
+            echo ""
+            make contract-size-check BASELINE_FILE=../baseline_sizes.json
+          else
+            echo "🔄 Running basic contract size check..."
+            make contract-size-check
+          fi
+
+      # Clean up baseline file
+      - name: Cleanup
+        if: always()
+        run: rm -f baseline_sizes.json

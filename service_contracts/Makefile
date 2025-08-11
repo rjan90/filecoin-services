@@ -53,7 +53,12 @@ coverage:
 .PHONY: contract-size-check
 contract-size-check:
 	@echo "Checking contract sizes..."
-	bash tools/check-contract-size.sh src/
+	@if [ -n "$(BASELINE_FILE)" ]; then \
+		echo "Using baseline file: $(BASELINE_FILE)"; \
+		bash tools/check-contract-size.sh src/ --baseline "$(BASELINE_FILE)"; \
+	else \
+		bash tools/check-contract-size.sh src/; \
+	fi
 
 # Help target
 .PHONY: help
@@ -68,3 +73,4 @@ help:
 	@echo "  coverage   - Generate test coverage"
 	@echo "  help       - Show this help message"
 	@echo "  contract-size-check - Check contract sizes against EIP-170 and EIP-3860 limits"
+	@echo "    BASELINE_FILE=<file> - Optional: compare against baseline for delta reporting"
