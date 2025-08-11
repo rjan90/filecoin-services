@@ -2496,7 +2496,8 @@ contract FilecoinWarmStorageServiceTest is Test {
         keys[1] = "contentType";
         values[1] = abi.encode("image/jpeg");
 
-        PieceMetadataSetup memory setup = setupDataSetWithPieceMetadata(pieceId, keys, values, FAKE_SIGNATURE, address(mockPDPVerifier));
+        PieceMetadataSetup memory setup =
+            setupDataSetWithPieceMetadata(pieceId, keys, values, FAKE_SIGNATURE, address(mockPDPVerifier));
 
         // Test getPieceMetadata for existing keys
         bytes memory filename = pdpServiceWithPayments.getPieceMetadata(setup.dataSetPieceId, "filename");
@@ -2521,10 +2522,12 @@ contract FilecoinWarmStorageServiceTest is Test {
         keys[1] = "contentType";
         values[1] = abi.encode("image/jpeg");
 
-        PieceMetadataSetup memory setup = setupDataSetWithPieceMetadata(pieceId, keys, values, FAKE_SIGNATURE, address(mockPDPVerifier));
+        PieceMetadataSetup memory setup =
+            setupDataSetWithPieceMetadata(pieceId, keys, values, FAKE_SIGNATURE, address(mockPDPVerifier));
 
         for (uint256 i = 0; i < keys.length; i++) {
-            bytes memory storedMetadata = pdpServiceWithPayments.getPieceMetadataByIds(setup.dataSetId, setup.pieceId, keys[i]);
+            bytes memory storedMetadata =
+                pdpServiceWithPayments.getPieceMetadataByIds(setup.dataSetId, setup.pieceId, keys[i]);
             assertEq(storedMetadata, values[i], string.concat("Stored metadata should match for key: ", keys[i]));
         }
     }
@@ -2540,7 +2543,8 @@ contract FilecoinWarmStorageServiceTest is Test {
         keys[1] = "contentType";
         values[1] = abi.encode("image/jpeg");
 
-        PieceMetadataSetup memory setup = setupDataSetWithPieceMetadata(pieceId, keys, values, FAKE_SIGNATURE, address(mockPDPVerifier));
+        PieceMetadataSetup memory setup =
+            setupDataSetWithPieceMetadata(pieceId, keys, values, FAKE_SIGNATURE, address(mockPDPVerifier));
 
         // Test getPieceMetadataKeys
         string[] memory storedKeys = pdpServiceWithPayments.getPieceMetadataKeys(setup.dataSetPieceId);
@@ -2561,10 +2565,12 @@ contract FilecoinWarmStorageServiceTest is Test {
         keys[1] = "contentType";
         values[1] = abi.encode("image/jpeg");
 
-        PieceMetadataSetup memory setup = setupDataSetWithPieceMetadata(pieceId, keys, values, FAKE_SIGNATURE, address(mockPDPVerifier));
+        PieceMetadataSetup memory setup =
+            setupDataSetWithPieceMetadata(pieceId, keys, values, FAKE_SIGNATURE, address(mockPDPVerifier));
 
         // Test getPieceMetadataKeys
-        (string[] memory storedKeys, bytes[] memory storedValues) = pdpServiceWithPayments.getPieceMetadataAllKeys(setup.dataSetPieceId);
+        (string[] memory storedKeys, bytes[] memory storedValues) =
+            pdpServiceWithPayments.getPieceMetadataAllKeys(setup.dataSetPieceId);
         assertEq(storedKeys.length, keys.length, "Should return correct number of metadata keys");
         for (uint256 i = 0; i < keys.length; i++) {
             assertEq(storedKeys[i], keys[i], string.concat("Stored key should match: ", keys[i]));
@@ -2583,7 +2589,8 @@ contract FilecoinWarmStorageServiceTest is Test {
         keys[1] = "contentType";
         values[1] = abi.encode("image/jpeg");
 
-        PieceMetadataSetup memory setup = setupDataSetWithPieceMetadata(pieceId, keys, values, FAKE_SIGNATURE, address(mockPDPVerifier));
+        PieceMetadataSetup memory setup =
+            setupDataSetWithPieceMetadata(pieceId, keys, values, FAKE_SIGNATURE, address(mockPDPVerifier));
 
         // Test getPieceMetadataKeys
         (string[] memory storedKeys, bytes[] memory storedValues) =
@@ -2616,7 +2623,8 @@ contract FilecoinWarmStorageServiceTest is Test {
             setupDataSetWithPieceMetadata(pieceId, keys, values, FAKE_SIGNATURE, address(mockPDPVerifier));
 
         // Attempt to get metadata for a non-existent key
-        bytes memory nonExistentMetadata = pdpServiceWithPayments.getPieceMetadata(setup.dataSetPieceId, "nonExistentKey");
+        bytes memory nonExistentMetadata =
+            pdpServiceWithPayments.getPieceMetadata(setup.dataSetPieceId, "nonExistentKey");
         assertEq(nonExistentMetadata.length, 0, "Should return empty bytes for non-existent key");
     }
 
